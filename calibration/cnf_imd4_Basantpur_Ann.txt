@@ -1,0 +1,204 @@
+
+# ECHSE Control file
+#
+# - Lines starting with '#' are treated as comments. Blank lines are ignored.
+# - Settings take the form 'keyword=value'. There must be no space/tab between
+#   the keyword and the '=' character. Usually, there must also be no space/tab
+#   just after the '=', unless you want the space/tab to be part of the value.
+# - Keywords may appear in any order, so interchanging of lines has no effect.
+
+################################################################################
+# Computational settings
+trap_fpe=true
+#multithread=false
+singlethread_if_less_than=2
+number_of_threads=1
+
+################################################################################
+# Declaration of models (id and group)
+#table_objectDeclaration=../data/topocatch/out_csa100_Arc_Gis_splitting2/Basantpur/objDecl.gage_Basantpur.txt
+
+################################################################################
+# Definition of the simulation time window
+
+simStart=2000-03-02 08:00:00
+#simStart=2000-01-01 08:00:00
+simEnd=2010-12-31 08:00:00
+#delta_t=28800
+delta_t=3600
+#delta_t=86400
+
+################################################################################
+# Settings for consecutive model runs
+
+multiRun.max_runs=1
+multiRun.cmd_pre=;
+multiRun.cmd_post=;
+multiRun.returncode_pre_normal=0
+multiRun.returncode_post_normal=0
+multiRun.returncode_post_break=99
+multiRun.reInit_paramsNum=false
+multiRun.reInit_paramsFun=false
+multiRun.reInit_sharedParamsNum=false
+multiRun.reInit_sharedParamsFun=false
+
+################################################################################
+# Specification of model outputs
+#table_selectedOutput=imd4/Basantpur/output_selection.txt
+table_selectedOutput=calibration/output_selection.txt
+#table_debugOutput=imd4/Basantpur/output_debug.txt
+table_debugOutput=calibration/output_debug.txt
+#table_stateOutput=imd4/Basantpur/output_state.txt
+table_stateOutput=calibration/output_state.txt
+output_columnSeparator=	
+output_lineComment=#
+#outputDirectory=out
+outputFormat=tab
+saveFinalState=true
+
+################################################################################
+# Special characters in all input files (except for this control file)
+
+input_columnSeparator=	 ;
+input_lineComment=#
+
+################################################################################
+# Initial values
+
+#vorher
+##table_initialValues_scal=../data/initials/statesScal_20101231000000.txt
+##table_initialValues_scal=initials/statesScal_20101231000000.txt # Ann alt
+#table_initialValues_scal=initials/statesScal_20000101010000.txt
+##table_initialValues_vect=../data/initials/init_vect.txt 
+#table_initialValues_vect=initials/statesScal_20101231000000.txt
+
+#nachher
+#table_initialValues_scal=../data/initials/statesScal_20101231000000.txt
+#table_initialValues_scal=initials/statesScal_20101231000000.txt # Ann alt
+#table_initialValues_scal=initials/statesScal_20000101010000.txt # Ann hat funktioniert aber Datei war nicht im Pfad
+table_initialValues_scal=initials/statesScal_20000302080000.txt
+#table_initialValues_vect=../data/initials/init_vect.txt 
+table_initialValues_vect=initials/init_vect.txt
+#table_initialValues_vect=initials/statesScal_20101231000000.txt ### RICHTIG oder wahrscheinlich auch init_vect.txt -> geändert
+################################################################################
+# Boundary conditions
+#table_inputOutputRelations=../data/topocatch/out_csa100_Arc_Gis_splitting2/Basantpur/objLink_Basantpur.txt 
+table_inputOutputRelations=out_csa100_Arc_Gis_splitting/Basantpur/objLink_Basantpur.txt 
+externalInput_bufferSize=240
+#table_externalInput_locations=../data/bconds/inputs_ext_locations_imd4_long.txt # Ann anpassen zuordnung boundary #cond --> .. eine ebene vor gehen
+table_externalInput_locations=../echse_projekt_Ann/data/bconds/inputs_ext_locations_imd4_long_temp_gridded.txt
+#table_externalInput_datafiles=../data/bconds/inputs_ext_datafiles__imd4_warmup_long.txt
+table_externalInput_datafiles=../echse_projekt_Ann/data/bconds/inputs_ext_datafiles_imd4_warmup_long_temp_gridded.txt
+
+################################################################################
+# Class-specific input files
+################################################################################
+
+# Catchment parameters
+#cat_hypsoRR_numParamsIndividual=paramNum_cat_MCS_template_updated.txt 
+#cat_hypsoRR_funParamsIndividual=../data/params/dummy_fun.txt
+cat_hypsoRR_funParamsIndividual=../echse_projekt_Ann/data/params/dummy_fun.txt
+#cat_hypsoRR_numParamsShared=cat_num_shared.txt
+#cat_hypsoRR_funParamsShared=../data/params/dummy_fun.txt
+cat_hypsoRR_funParamsShared=../echse_projekt_Ann/data/params/dummy_fun.txt 
+
+# Reach parameters
+rch_numParamsIndividual=../echse_projekt_Ann/data/params/dummy_num.txt
+rch_funParamsIndividual=../echse_projekt_Ann/data/params/rch_fun_lisei_erweitert.txt
+rch_numParamsShared=../echse_projekt_Ann/data/params/dummy_num.txt
+rch_funParamsShared=../echse_projekt_Ann/data/params/dummy_fun.txt
+
+# Minireach parameters
+minirch_numParamsIndividual=../echse_projekt_Ann/data/params/dummy_num.txt
+minirch_funParamsIndividual=../echse_projekt_Ann/data/params/dummy_fun.txt
+minirch_numParamsShared=../echse_projekt_Ann/data/params/dummy_num.txt
+minirch_funParamsShared=../echse_projekt_Ann/data/params/dummy_fun.txt
+
+# Gage parameters
+gage_numParamsIndividual=../echse_projekt_Ann/data/params/gage_num.txt
+gage_funParamsIndividual=../echse_projekt_Ann/data/params/dummy_fun.txt
+gage_numParamsShared=../echse_projekt_Ann/data/params/dummy_num.txt
+gage_funParamsShared=../echse_projekt_Ann/data/params/dummy_fun.txt
+
+# Reservoir parameters
+res_floodctrl_numParamsIndividual=../echse_projekt_Ann/data/params/dummy_num.txt
+res_floodctrl_funParamsIndividual=../echse_projekt_Ann/data/params/dummy_fun.txt
+res_floodctrl_numParamsShared=../echse_projekt_Ann/data/params/dummy_num.txt
+res_floodctrl_funParamsShared=../echse_projekt_Ann/data/params/dummy_fun.txt
+
+res_reservoir_numParamsIndividual=../echse_projekt_Ann/data/params/dummy_num.txt
+res_reservoir_funParamsIndividual=../echse_projekt_Ann/data/params/dummy_fun.txt
+res_reservoir_numParamsShared=../echse_projekt_Ann/data/params/dummy_num.txt
+res_reservoir_funParamsShared=../echse_projekt_Ann/data/params/dummy_fun.txt
+
+# Node parameters (all dummy files)
+node_n1_funParamsIndividual=../echse_projekt_Ann/data/params/dummy_fun.txt
+node_n2_funParamsIndividual=../echse_projekt_Ann/data/params/dummy_fun.txt
+node_n3_funParamsIndividual=../echse_projekt_Ann/data/params/dummy_fun.txt
+node_n4_funParamsIndividual=../echse_projekt_Ann/data/params/dummy_fun.txt
+node_n5_funParamsIndividual=../echse_projekt_Ann/data/params/dummy_fun.txt
+node_n6_funParamsIndividual=../echse_projekt_Ann/data/params/dummy_fun.txt
+node_n7_funParamsIndividual=../echse_projekt_Ann/data/params/dummy_fun.txt
+node_n8_funParamsIndividual=../echse_projekt_Ann/data/params/dummy_fun.txt
+node_n9_funParamsIndividual=../echse_projekt_Ann/data/params/dummy_fun.txt
+node_n10_funParamsIndividual=../echse_projekt_Ann/data/params/dummy_fun.txt
+node_n11_funParamsIndividual=../echse_projekt_Ann/data/params/dummy_fun.txt
+node_n12_funParamsIndividual=../echse_projekt_Ann/data/params/dummy_fun.txt
+
+node_n1_numParamsIndividual=../echse_projekt_Ann/data/params/dummy_num.txt
+node_n2_numParamsIndividual=../echse_projekt_Ann/data/params/dummy_num.txt
+node_n3_numParamsIndividual=../echse_projekt_Ann/data/params/dummy_num.txt
+node_n4_numParamsIndividual=../echse_projekt_Ann/data/params/dummy_num.txt
+node_n5_numParamsIndividual=../echse_projekt_Ann/data/params/dummy_num.txt
+node_n6_numParamsIndividual=../echse_projekt_Ann/data/params/dummy_num.txt
+node_n7_numParamsIndividual=../echse_projekt_Ann/data/params/dummy_num.txt
+node_n8_numParamsIndividual=../echse_projekt_Ann/data/params/dummy_num.txt
+node_n9_numParamsIndividual=../echse_projekt_Ann/data/params/dummy_num.txt
+node_n10_numParamsIndividual=../echse_projekt_Ann/data/params/dummy_num.txt
+node_n11_numParamsIndividual=../echse_projekt_Ann/data/params/dummy_num.txt
+node_n12_numParamsIndividual=../echse_projekt_Ann/data/params/dummy_num.txt
+
+node_n1_funParamsShared=../echse_projekt_Ann/data/params/dummy_fun.txt
+node_n2_funParamsShared=../echse_projekt_Ann/data/params/dummy_fun.txt
+node_n3_funParamsShared=../echse_projekt_Ann/data/params/dummy_fun.txt
+node_n4_funParamsShared=../echse_projekt_Ann/data/params/dummy_fun.txt
+node_n5_funParamsShared=../echse_projekt_Ann/data/params/dummy_fun.txt
+node_n6_funParamsShared=../echse_projekt_Ann/data/params/dummy_fun.txt
+node_n7_funParamsShared=../echse_projekt_Ann/data/params/dummy_fun.txt
+node_n8_funParamsShared=../echse_projekt_Ann/data/params/dummy_fun.txt
+node_n9_funParamsShared=../echse_projekt_Ann/data/params/dummy_fun.txt
+node_n10_funParamsShared=../echse_projekt_Ann/data/params/dummy_fun.txt
+node_n11_funParamsShared=../echse_projekt_Ann/data/params/dummy_fun.txt
+node_n12_funParamsShared=../echse_projekt_Ann/data/params/dummy_fun.txt
+
+node_n1_numParamsShared=../echse_projekt_Ann/data/params/dummy_num.txt
+node_n2_numParamsShared=../echse_projekt_Ann/data/params/dummy_num.txt
+node_n3_numParamsShared=../echse_projekt_Ann/data/params/dummy_num.txt
+node_n4_numParamsShared=../echse_projekt_Ann/data/params/dummy_num.txt
+node_n5_numParamsShared=../echse_projekt_Ann/data/params/dummy_num.txt
+node_n6_numParamsShared=../echse_projekt_Ann/data/params/dummy_num.txt
+node_n7_numParamsShared=../echse_projekt_Ann/data/params/dummy_num.txt
+node_n8_numParamsShared=../echse_projekt_Ann/data/params/dummy_num.txt
+node_n9_numParamsShared=../echse_projekt_Ann/data/params/dummy_num.txt
+node_n10_numParamsShared=../echse_projekt_Ann/data/params/dummy_num.txt
+node_n11_numParamsShared=../echse_projekt_Ann/data/params/dummy_num.txt
+node_n12_numParamsShared=../echse_projekt_Ann/data/params/dummy_num.txt
+
+# Rain gages
+raingage_numParamsIndividual=../echse_projekt_Ann/data/params/dummy_num.txt
+raingage_funParamsIndividual=../echse_projekt_Ann/data/params/dummy_fun.txt
+raingage_numParamsShared=../echse_projekt_Ann/data/params/dummy_num.txt
+raingage_funParamsShared=../echse_projekt_Ann/data/params/dummy_fun.txt
+
+# Computed inflow
+externalInflow_numParamsIndividual=../echse_projekt_Ann/data/params/dummy_num.txt
+externalInflow_funParamsIndividual=../echse_projekt_Ann/data/params/dummy_fun.txt
+externalInflow_numParamsShared=../echse_projekt_Ann/data/params/dummy_num.txt
+externalInflow_funParamsShared=../echse_projekt_Ann/data/params/dummy_fun.txt
+
+# Lake
+lake_numParamsIndividual=../echse_projekt_Ann/data/params/dummy_num.txt
+lake_funParamsIndividual=../echse_projekt_Ann/data/params/dummy_fun.txt
+lake_numParamsShared=../echse_projekt_Ann/data/params/dummy_num.txt
+lake_funParamsShared=../echse_projekt_Ann/data/params/dummy_fun.txt
+

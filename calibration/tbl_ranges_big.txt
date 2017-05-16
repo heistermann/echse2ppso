@@ -1,0 +1,13 @@
+parameter	min	max
+exp_satfrac	0.30	0.90
+relsat_inter	0.30	0.90
+rate_inter	1.0e-5	1.0e-01
+rate_base	5.0e-10	5.0e-8
+str_pref	0.25	0.45
+mult_str_inter	1.0	5
+str_base	5	40
+relsat_etmin	0.01	0.15
+relsat_etmax	0.15	0.40
+mult_str_surf	0.8	1
+thr_surf	9999	9999
+fac_precip	1	1
