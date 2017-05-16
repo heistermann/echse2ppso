@@ -158,11 +158,12 @@ objfunc = function(parameters) {
 }
 
 
-# Just a dummy first/final function
+# Just dummy first/final functions to be used whenever needed
 dummyfuncfinal = function(parameters, gof, args) {return(0)}
 dummyfuncfirst = function(parameters, args) {return(0)}
 
-# This function is to read the catchment files and catch errors
+
+# Read one catchment (cat) file and catch possible errors
 readcat <- function(f) {
   out <- tryCatch(
     {
@@ -184,7 +185,7 @@ readcat <- function(f) {
       return(NA)
     },
     finally={
-      # Nothing
+      # Finally: nothing else.
     }
   )    
   return(out)
@@ -242,6 +243,7 @@ process_catfiles = function(parameters, gof, args) {
   return(0)
 }
 
+
 # Argument vector for process_catfiles
 process_catfiles_args= c(
   pattern="calibration/out/cat_*.txt", 
@@ -250,12 +252,14 @@ process_catfiles_args= c(
   outfile="calibration/out/etr_monthly.txt"
 )
 
+## DEBUGGING
 ##process_catfiles(NULL, NULL, process_catfiles_args)
 ##plot(as.POSIXct(out$month), out$etr, type="l")
 
 
 # Compute areal everage ETR from MODIS data
-#   This will produce the "observed" data.frame to be used with error2
+#   This will produce the "observed" data.frame 
+#   to be used with error2 in objfunc2.
 etr_from_modis = function(infile="modis_etr/data.txt") {
   cats = read.table(infile, sep="\t", stringsAsFactors = FALSE, header=TRUE,
                    na.strings = "nan" )
@@ -265,7 +269,7 @@ etr_from_modis = function(infile="modis_etr/data.txt") {
   return(df)
 }
 
-# This onjective function attempts to consider both discharge and ETR
+# This objective function attempts to consider both discharge and ETR
 objfunc2 = function(parameters) {
   # format parameters as needed by HBV subroutine PARINN
   if (parameter_fmt!="") {
@@ -274,8 +278,7 @@ objfunc2 = function(parameters) {
   #   # set parameter names in parameter vector
   attr(parameters, "names")=read.table(file=myrangetable, header=TRUE, sep="\t", colClasses= c("character","numeric","numeric"))[,1] 
   print (paste(Sys.time(),": objfunc2 called..."))
-  #modelError_multiDim updates parameter file,
-  #  calls the model, reads the results and returns GOF
+  # 1st call
   error1 = modelError_multiDim(
     parameters=parameters,
     model_path = mymodelpath,
@@ -288,15 +291,15 @@ objfunc2 = function(parameters) {
     sim_colsTime= sim_colTime,
     sim_colsValue= sim_colValue,
     sim_colsep = "\t",
-    sim_timeConv = function(x) { as.POSIXct(strptime(x,"%Y-%m-%d %H:%M:%S", tz = "UTC"), tz = "UTC") },
+    sim_timeConv = function(x) { as.POSIXct(
+      strptime(x,"%Y-%m-%d %H:%M:%S", tz = "UTC"), tz = "UTC") },
     observed= obs_file,
     obs_colTime= obs_colTime,
     periods.select=periods,
     periods.ignore=periods.ignore,
     gof_function = gof_func2
   )
-  # This is a dummy call which is only about evaluating
-  #   the ETR data
+  # 2nd call
   error2 = modelError_multiDim(
     parameters=parameters,
     model_path = "calibration/dummymodel.cmd",
@@ -309,7 +312,8 @@ objfunc2 = function(parameters) {
     sim_colsTime= c("month"), 
     sim_colsValue= c("etr"),
     sim_colsep = "\t",
-    sim_timeConv = function(x) { as.POSIXct(strptime(x,"%Y-%m-%d %H:%M:%S", tz = "UTC"), tz = "UTC") },
+    sim_timeConv = function(x) { as.POSIXct(
+      strptime(x,"%Y-%m-%d %H:%M:%S", tz = "UTC"), tz = "UTC") },
     observed= etr_from_modis(),
     obs_colTime= "month", 
     periods.select=periods,
@@ -318,8 +322,10 @@ objfunc2 = function(parameters) {
   )
   error1 = error1[["qx_avg"]]
   error2 = error2[["etr"]]
-  print (paste("NSE1=",error1["NSE"], "; pBias1=", error1["pBias"], "; mNSE=", error1["mNSE"]))
-  print (paste("NSE2=",error2["NSE"], "; pBias2=", error2["pBias"], "; mNSE2=", error2["mNSE"]))
+  print (paste("NSE1=",error1["NSE"], "; pBias1=", 
+               error1["pBias"], "; mNSE=", error1["mNSE"]))
+  print (paste("NSE2=",error2["NSE"], "; pBias2=", 
+               error2["pBias"], "; mNSE2=", error2["mNSE"]))
   flush.console()
   error = 0.8*error1["mNSE"] + 0.2*error2["mNSE"]
   print (paste("Error:",error))
@@ -327,25 +333,6 @@ objfunc2 = function(parameters) {
 }
 
 
-modelError_multiDim(
-  parameters=apply(X=param_bounds, MARGIN=1, FUN=mean),
-  model_path = "calibration/dummymodel.cmd",
-  model_args = NULL,
-  func_first = dummyfuncfirst, 
-  moreArgs_first = NULL, 
-  func_final =process_catfiles,
-  moreArgs_final = process_catfiles_args,
-  sim_files = sim_file,
-  sim_colsTime= sim_colTime,
-  sim_colsValue= sim_colValue,
-  sim_colsep = "\t",
-  sim_timeConv = function(x) { as.POSIXct(strptime(x,"%Y-%m-%d %H:%M:%S", tz = "UTC"), tz = "UTC") },
-  observed= obs_file,
-  obs_colTime= obs_colTime,
-  periods.select=periods,
-  periods.ignore=periods.ignore,
-  gof_function = gof_func2 
-)
 
 
 
@@ -353,10 +340,17 @@ modelError_multiDim(
 
 # Call the optimisation routine from ppso package, using our objective function
 # read paramter ranges
-param_bounds = read.table(file=myrangetable, header=TRUE, sep="\t", colClasses= c("character","numeric","numeric"))[,2:3]
-rownames(param_bounds)<- read.table(file=myrangetable, header=TRUE, sep="\t", colClasses= c("character","numeric","numeric"))[,1]
+param_bounds = read.table(file=myrangetable, 
+                          header=TRUE, 
+                          sep="\t", 
+                          colClasses= c("character","numeric","numeric"))[,2:3]
+rownames(param_bounds) = read.table(file=myrangetable, 
+                                    header=TRUE, 
+                                    sep="\t", 
+                                    colClasses= c("character","numeric","numeric"))[,1]
 
-# TEST CALL
+
+# TEST CALL (also a way you can just call the model ONCE)
 ##out = objfunc2(apply(X=param_bounds, MARGIN=1, FUN=mean))
 
 
@@ -382,8 +376,7 @@ result = optim_dds(
 
 
 
-# plot process
-
+# plot progress
 plot_optimization_progress(logfile=  ppso_log,
                            projectfile = ppso_proj,
                            progress_plot_filename=NULL,
