@@ -159,8 +159,12 @@ objfunc = function(parameters) {
 
 
 # Just dummy first/final functions to be used whenever needed
-dummyfuncfinal = function(parameters, gof, args) {return(0)}
-dummyfuncfirst = function(parameters, args) {return(0)}
+dummyfuncfinal = function(parameters, gof, args) {
+  gc(verbose=FALSE)
+  return(0)}
+dummyfuncfirst = function(parameters, args) {
+  gc(verbose=FALSE)
+  return(0)}
 
 
 # Read one catchment (cat) file and catch possible errors
@@ -239,7 +243,8 @@ process_catfiles = function(parameters, gof, args) {
   
   # Write results file
   write.table(monthly, args["outfile"], quote=FALSE, sep = "\t", row.names=FALSE)
-
+  
+  gc(verbose=FALSE)
   return(0)
 }
 
@@ -253,6 +258,7 @@ process_catfiles_args= c(
 )
 
 ## DEBUGGING
+##readcat("calibration/out/cat_460.txt")
 ##process_catfiles(NULL, NULL, process_catfiles_args)
 ##plot(as.POSIXct(out$month), out$etr, type="l")
 
@@ -266,6 +272,7 @@ etr_from_modis = function(infile="modis_etr/data.txt") {
   # Compute average over all catchment
   avg = apply(X=cats[,2:ncol(cats)], MARGIN=1, FUN=mean, na.rm=TRUE)
   df = data.frame(month=as.POSIXct(cats$datetime), etr=avg)
+  gc(verbose=FALSE)
   return(df)
 }
 
@@ -299,6 +306,7 @@ objfunc2 = function(parameters) {
     periods.ignore=periods.ignore,
     gof_function = gof_func2
   )
+  gc(verbose=FALSE)
   # 2nd call
   error2 = modelError_multiDim(
     parameters=parameters,
@@ -320,6 +328,7 @@ objfunc2 = function(parameters) {
     periods.ignore=periods.ignore,
     gof_function = gof_func2 
   )
+  gc(verbose=FALSE)
   error1 = error1[["qx_avg"]]
   error2 = error2[["etr"]]
   print (paste("NSE1=",error1["NSE"], "; pBias1=", 
@@ -329,6 +338,7 @@ objfunc2 = function(parameters) {
   flush.console()
   error = 0.8*error1["mNSE"] + 0.2*error2["mNSE"]
   print (paste("Error:",error))
+  gc(verbose=FALSE)
   return (error)
 }
 
@@ -376,44 +386,44 @@ result = optim_dds(
 
 
 
-# plot progress
-plot_optimization_progress(logfile=  ppso_log,
-                           projectfile = ppso_proj,
-                           progress_plot_filename=NULL,
-                           goodness_plot_filename=NULL, 
-                           cutoff_quantile=0.95, 
-                           verbose=FALSE)
-
-
-
-
-
-
-######## produce data for plotting
-save.output = function(parameters, gof, moreArgs_final) {
-  
-  return(0)      # debug
-}
-
-sample_params = t(as.data.frame(read.table("calibration/dds.pro", header=FALSE, skip=1, sep="\t")[,1:12]))
-#rownames(sample_params)<- read.table("imd4/Basantpur/tbl_ranges_big.txt", header=TRUE, sep="\t", colClasses= c("character","numeric","numeric"))[,1]
-#rownames(sample_params)<- read.table("calibration/tbl_ranges_big.txt", header=TRUE, sep="\t", colClasses=c("character", "number", "numeric"))[,1] # funktioniert nicht
-rownames(sample_params)<- read.table("calibration/tbl_ranges_bigger.txt", header=TRUE, sep="\t", colClasses=c("factor", "numeric", "numeric"))[,1]
-gof_func      = function(obs, sim) {
-  NSE = 1 - mean((sim-obs)^2)/var(obs)
-  #NSE2 = (-1. + mean((obs - sim)^2) / var(obs) )
-  pBias = (sum(sim-obs)/sum(obs))*100
-  #mNSE = (NSE * ((100-abs(pBias))/100))*(-1)
-  rmse= sqrt(mean((sim-obs)^2))
-  ifelse(NSE>0,mNSE <- (NSE * ((100-abs(pBias))/100))*(-1),mNSE <- (NSE * ((100+abs(pBias))/100))*(-1))
-  #mNSE = (NSE * ((100-abs(pBias))/100))*(-1)    # modified NS
-  #mNSE = (NSE * ((100-abs(pBias))/100))*(-1)    # modified NS
-  #return(mNSE)
-  return(list(mNSE, NSE, pBias, rmse)) 
-  #return(NSE*(-1))
-}
-
-test = objfunc(sample_params)
-#big <- read.table("calibration/tbl_ranges_big.txt", header=T, sep="\t")
-#big
-#class(big[,3])
+# # plot progress
+# plot_optimization_progress(logfile=  ppso_log,
+#                            projectfile = ppso_proj,
+#                            progress_plot_filename=NULL,
+#                            goodness_plot_filename=NULL, 
+#                            cutoff_quantile=0.95, 
+#                            verbose=FALSE)
+# 
+# 
+# 
+# 
+# 
+# 
+# ######## produce data for plotting
+# save.output = function(parameters, gof, moreArgs_final) {
+#   
+#   return(0)      # debug
+# }
+# 
+# sample_params = t(as.data.frame(read.table("calibration/dds.pro", header=FALSE, skip=1, sep="\t")[,1:12]))
+# #rownames(sample_params)<- read.table("imd4/Basantpur/tbl_ranges_big.txt", header=TRUE, sep="\t", colClasses= c("character","numeric","numeric"))[,1]
+# #rownames(sample_params)<- read.table("calibration/tbl_ranges_big.txt", header=TRUE, sep="\t", colClasses=c("character", "number", "numeric"))[,1] # funktioniert nicht
+# rownames(sample_params)<- read.table("calibration/tbl_ranges_bigger.txt", header=TRUE, sep="\t", colClasses=c("factor", "numeric", "numeric"))[,1]
+# gof_func      = function(obs, sim) {
+#   NSE = 1 - mean((sim-obs)^2)/var(obs)
+#   #NSE2 = (-1. + mean((obs - sim)^2) / var(obs) )
+#   pBias = (sum(sim-obs)/sum(obs))*100
+#   #mNSE = (NSE * ((100-abs(pBias))/100))*(-1)
+#   rmse= sqrt(mean((sim-obs)^2))
+#   ifelse(NSE>0,mNSE <- (NSE * ((100-abs(pBias))/100))*(-1),mNSE <- (NSE * ((100+abs(pBias))/100))*(-1))
+#   #mNSE = (NSE * ((100-abs(pBias))/100))*(-1)    # modified NS
+#   #mNSE = (NSE * ((100-abs(pBias))/100))*(-1)    # modified NS
+#   #return(mNSE)
+#   return(list(mNSE, NSE, pBias, rmse)) 
+#   #return(NSE*(-1))
+# }
+# 
+# test = objfunc(sample_params)
+# #big <- read.table("calibration/tbl_ranges_big.txt", header=T, sep="\t")
+# #big
+# #class(big[,3])
