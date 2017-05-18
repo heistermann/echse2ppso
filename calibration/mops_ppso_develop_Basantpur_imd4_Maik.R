@@ -282,6 +282,11 @@ objfunc2 = function(parameters) {
   if (parameter_fmt!="") {
     parameters = sprintf(parameter_fmt, parameters)
   }
+  # Unlog logarithmized parameters for use in hypsoRR
+  parameters["rate_inter"] = 10.^parameters["rate_inter"]
+  parameters["rate_base"] = 10.^parameters["rate_base"]
+  parameters["str_base"] = 10.^parameters["str_base"]
+   
   #   # set parameter names in parameter vector
   attr(parameters, "names")=read.table(file=myrangetable, header=TRUE, sep="\t", colClasses= c("character","numeric","numeric"))[,1] 
   print (paste(Sys.time(),": objfunc2 called..."))
@@ -329,15 +334,15 @@ objfunc2 = function(parameters) {
     gof_function = gof_func2 
   )
   gc(verbose=FALSE)
-  error1 = error1[["qx_avg"]]
-  error2 = error2[["etr"]]
+  error1 = round(error1[["qx_avg"]], 3)
+  error2 = round(error2[["etr"]], 3)
   print (paste("NSE1=",error1["NSE"], "; pBias1=", 
                error1["pBias"], "; mNSE=", error1["mNSE"]))
   print (paste("NSE2=",error2["NSE"], "; pBias2=", 
                error2["pBias"], "; mNSE2=", error2["mNSE"]))
   flush.console()
   error = 0.8*error1["mNSE"] + 0.2*error2["mNSE"]
-  print (paste("Error:",error))
+  print (paste("Error:",round(error, 3)))
   gc(verbose=FALSE)
   return (error)
 }
@@ -360,45 +365,48 @@ rownames(param_bounds) = read.table(file=myrangetable,
                                     colClasses= c("character","numeric","numeric"))[,1]
 
 
-# TEST CALL (also a way you can just call the model ONCE)
+# DEBUG (also a way you can just call the model ONCE and compute the GOFs)
 ##out = objfunc2(apply(X=param_bounds, MARGIN=1, FUN=mean))
+
+# DEBUG: just re-run model with the existing input files
+##run_model(model_path = mymodelpath, model_args = model_args)
 
 
 result = optim_dds(
   objective_function = objfunc2,
   number_of_parameters = length(param_bounds[,1]),
   number_of_particles =  1,
-  max_number_function_calls= 100,#max_number_function_calls, #### ERstmal weniger läufe z.B. 10 probieren 
+  max_number_function_calls= 200,
   r=0.2,
   abstol = -Inf, 
   reltol = -Inf, 
   max_wait_iterations=50,
   parameter_bounds = param_bounds,
-  lhc_init=FALSE, 
+  lhc_init=TRUE, 
   do_plot = NULL, 
   wait_for_keystroke = FALSE,
   logfile=  "calibration/dds.log",  
   projectfile = "calibration/dds.pro",
-  load_projectfile = "yes", 
+  load_projectfile = "try", 
   break_file=NULL, 
   plot_progress=FALSE, 
   tryCall=FALSE)
 
 
 
-# # plot progress
-# plot_optimization_progress(logfile=  ppso_log,
-#                            projectfile = ppso_proj,
-#                            progress_plot_filename=NULL,
-#                            goodness_plot_filename=NULL, 
-#                            cutoff_quantile=0.95, 
-#                            verbose=FALSE)
-# 
-# 
-# 
-# 
-# 
-# 
+# plot progress
+plot_optimization_progress(logfile=  ppso_log,
+                           projectfile = ppso_proj,
+                           progress_plot_filename=NULL,
+                           goodness_plot_filename=NULL,
+                           cutoff_quantile=0.95,
+                           verbose=FALSE)
+
+
+
+
+
+
 # ######## produce data for plotting
 # save.output = function(parameters, gof, moreArgs_final) {
 #   
