@@ -15,29 +15,16 @@ periods.ignore= data.frame(begin=ISOdatetime(1988,1,1,0,0,0),end=ISOdatetime(198
 ################################################################################
 # SETTINGS #####################################################################
 ################################################################################
-#wdir          = "/home/koehn/Shiva/modeling/echse_prj/hypsoRR/mahanadi/Lisei_middle_reaches_upstream/Calibration/" # wdir war und bleibt auskommentiert
-#outdir        = "imd4/Basantpur/out" # out odrner in Calibration ordner
 outdir="calibration/out"
-#mymodelpath   = "/home/koehn/Shiva/modeling/echse/echse_engines/bin/hypsoRR" #
 mymodelpath = "e:/data/kra/echse/Echse/echse_engines/bin/hypsoRR"
-
-#myrangetable  = "imd4/Basantpur/tbl_ranges_big.txt" # calibration ordner
 myrangetable = "calibration/tbl_ranges_bigger.txt"
-
-#sim_file      = c(qx_avg="imd4/Basantpur/out/gage_Basantpur.txt")#,end_of_interval="end_of_interval",qx_avg="qx_avg") 
 sim_file = c(qx_avg="calibration/out/gage_Basantpur.txt")
-# gage_Basantpur.txt habe ich nicht, nur gage_Basantpur.csv -> richtig?oder wird das erstellt?
 sim_colTime   = c("end_of_interval")
 sim_colValue  = c("qx_avg")
 obs_file      = read.table("calibration/flow_Basantpur_0.txt", sep="\t", stringsAsFactors=FALSE, colClasses=c("POSIXct","numeric"), header=TRUE)
-
 obs_colTime   = "end_of_interval"
-
-#mops_log      = "imd4/Basantpur/mcs_and_pso.log"
 mops_log = "calibration/mcs_and_pso.log" 
-#ppso_log      = "imd4/Basantpur/dds.log"  
 ppso_log = "calibration/dds.log" 
-#ppso_proj     = "imd4/Basantpur/dds.pro"
 ppso_proj ="calibration/dds.pro"  
 
 parameter_fmt = "" # set to "" for ECHSE and "%13.4f" for HBV Nordic
@@ -57,8 +44,8 @@ model_args= c(
   #cat_hypsoRR_numParamsShared= "cat_num_shared.txt",
   cat_hypsoRR_numParamsShared="../echse_projekt_Ann/data/params/cat_num_shared.txt",
   outputDirectory= outdir,
-  #file_template="imd4/Basantpur/paramNum_cat_MCS_template2_new.txt",
-  file_template="calibration/paramNum_cat_MCS_template2_new.txt",
+  #file_template="calibration/paramNum_cat_MCS_template2_new.txt",
+  file_template="calibration/paramNum_cat_MCS_template_maik.txt",
   #file_result="imd4/Basantpur/paramNum_cat_MCS_template_updated_mult_str_surf.txt",
   file_result= "calibration/paramNum_cat_MCS_template_updated_mult_str_surf.txt",
     char_open="{",
@@ -276,6 +263,22 @@ etr_from_modis = function(infile="modis_etr/data.txt") {
   return(df)
 }
 
+
+# computes total error from Q-error and ETR-error
+#   room for experiments...
+total_error = function(error1, error2) {
+  # just reduce mNSE for Q by pBias
+  mNSE_Q = error1["mNSE"]
+  pBias_ETR = error2["pBias"]
+  # ATTENTION: mNSE is already negative here - the more negative the better!
+  if (mNSE_Q < 0) {
+    total = mNSE_Q * (100. - abs(pBias_ETR)) / 100.
+  } else {
+    total = mNSE_Q * (100. + abs(pBias_ETR)) / 100.
+  }
+  return(total)
+}
+
 # This objective function attempts to consider both discharge and ETR
 objfunc2 = function(parameters) {
   # format parameters as needed by HBV subroutine PARINN
@@ -341,7 +344,7 @@ objfunc2 = function(parameters) {
   print (paste("NSE2=",error2["NSE"], "; pBias2=", 
                error2["pBias"], "; mNSE2=", error2["mNSE"]))
   flush.console()
-  error = 0.8*error1["mNSE"] + 0.2*error2["mNSE"]
+  error = total_error(error1, error2)
   print (paste("Error:",round(error, 3)))
   gc(verbose=FALSE)
   return (error)
