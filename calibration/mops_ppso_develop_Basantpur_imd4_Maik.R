@@ -294,48 +294,99 @@ objfunc2 = function(parameters) {
   attr(parameters, "names")=read.table(file=myrangetable, header=TRUE, sep="\t", colClasses= c("character","numeric","numeric"))[,1] 
   print (paste(Sys.time(),": objfunc2 called..."))
   # 1st call
-  error1 = modelError_multiDim(
-    parameters=parameters,
-    model_path = mymodelpath,
-    model_args = model_args,
-    func_first = updatePars_byTemplate,
-    moreArgs_first = model_args,
-    func_final =process_catfiles,
-    moreArgs_final = process_catfiles_args,
-    sim_files = sim_file,
-    sim_colsTime= sim_colTime,
-    sim_colsValue= sim_colValue,
-    sim_colsep = "\t",
-    sim_timeConv = function(x) { as.POSIXct(
-      strptime(x,"%Y-%m-%d %H:%M:%S", tz = "UTC"), tz = "UTC") },
-    observed= obs_file,
-    obs_colTime= obs_colTime,
-    periods.select=periods,
-    periods.ignore=periods.ignore,
-    gof_function = gof_func2
-  )
+  localfun = function() {
+    out = tryCatch(
+      {
+        modelError_multiDim(
+          parameters=parameters,
+          model_path = mymodelpath,
+          model_args = model_args,
+          func_first = updatePars_byTemplate,
+          moreArgs_first = model_args,
+          func_final =process_catfiles,
+          moreArgs_final = process_catfiles_args,
+          sim_files = sim_file,
+          sim_colsTime= sim_colTime,
+          sim_colsValue= sim_colValue,
+          sim_colsep = "\t",
+          sim_timeConv = function(x) { as.POSIXct(
+            strptime(x,"%Y-%m-%d %H:%M:%S", tz = "UTC"), tz = "UTC") },
+          observed= obs_file,
+          obs_colTime= obs_colTime,
+          periods.select=periods,
+          periods.ignore=periods.ignore,
+          gof_function = gof_func2
+        ) 
+      },
+      error=function(cond) {
+        message("An error occured while calling ECHSE")
+        message(cond)
+        message("Continue anyway...")
+        return(list(qx_avg=c(mNSE=9999, pBias=9999, rmse=9999, NSE=-9999)))
+      },
+      warning=function(cond) {
+        message("An warning occured while calling ECHSE")
+        message("Here's the original warning message:")
+        message(cond)
+        #message("Continue without that file.")
+        # Choose a return value in case of warning
+        return(list(qx_avg=c(mNSE=9999, pBias=9999, rmse=9999, NSE=-9999)))
+      },
+      finally={
+        # Finally: nothing else.
+      }
+    )    
+    return(out)
+  }
+  error1 = localfun()
+    # error1 = modelError_multiDim(
+    #   parameters=parameters,
+    #   model_path = mymodelpath,
+    #   model_args = model_args,
+    #   func_first = updatePars_byTemplate,
+    #   moreArgs_first = model_args,
+    #   func_final =process_catfiles,
+    #   moreArgs_final = process_catfiles_args,
+    #   sim_files = sim_file,
+    #   sim_colsTime= sim_colTime,
+    #   sim_colsValue= sim_colValue,
+    #   sim_colsep = "\t",
+    #   sim_timeConv = function(x) { as.POSIXct(
+    #     strptime(x,"%Y-%m-%d %H:%M:%S", tz = "UTC"), tz = "UTC") },
+    #   observed= obs_file,
+    #   obs_colTime= obs_colTime,
+    #   periods.select=periods,
+    #   periods.ignore=periods.ignore,
+    #   gof_function = gof_func2
+    # )
+          
   gc(verbose=FALSE)
+  
   # 2nd call
-  error2 = modelError_multiDim(
-    parameters=parameters,
-    model_path = "calibration/dummymodel.cmd",
-    model_args = NULL,
-    func_first = dummyfuncfirst, 
-    moreArgs_first = NULL, 
-    func_final =save.output, 
-    moreArgs_final = removeOutput.args,
-    sim_files = c(etr="calibration/out/etr_monthly.txt"),
-    sim_colsTime= c("month"), 
-    sim_colsValue= c("etr"),
-    sim_colsep = "\t",
-    sim_timeConv = function(x) { as.POSIXct(
-      strptime(x,"%Y-%m-%d %H:%M:%S", tz = "UTC"), tz = "UTC") },
-    observed= etr_from_modis(),
-    obs_colTime= "month", 
-    periods.select=periods,
-    periods.ignore=periods.ignore,
-    gof_function = gof_func2 
-  )
+  if(error1$qx_avg["mNSE"]<9999) {
+    error2 = modelError_multiDim(
+      parameters=parameters,
+      model_path = "calibration/dummymodel.cmd",
+      model_args = NULL,
+      func_first = dummyfuncfirst, 
+      moreArgs_first = NULL, 
+      func_final =save.output, 
+      moreArgs_final = removeOutput.args,
+      sim_files = c(etr="calibration/out/etr_monthly.txt"),
+      sim_colsTime= c("month"), 
+      sim_colsValue= c("etr"),
+      sim_colsep = "\t",
+      sim_timeConv = function(x) { as.POSIXct(
+        strptime(x,"%Y-%m-%d %H:%M:%S", tz = "UTC"), tz = "UTC") },
+      observed= etr_from_modis(),
+      obs_colTime= "month", 
+      periods.select=periods,
+      periods.ignore=periods.ignore,
+      gof_function = gof_func2 
+    )
+  } else {
+    error2 = list(etr=c(mNSE=9999, pBias=9999, rmse=9999, NSE=-9999))
+  }
   gc(verbose=FALSE)
   error1 = round(error1[["qx_avg"]], 3)
   error2 = round(error2[["etr"]], 3)
@@ -390,7 +441,7 @@ result = optim_dds(
   wait_for_keystroke = FALSE,
   logfile=  "calibration/dds.log",  
   projectfile = "calibration/dds.pro",
-  load_projectfile = "try", 
+  load_projectfile = "no", 
   break_file=NULL, 
   plot_progress=FALSE, 
   tryCall=FALSE)
